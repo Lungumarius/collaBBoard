@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # Only PostgreSQL runs in Docker
+  # Auth Service, Whiteboard Service, and Frontend run on localhost
+  postgres:
+    image: postgres:15-alpine
+    container_name: collabboard-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+
+# To run services locally:
+# 
+# 1. Start PostgreSQL:
+#    docker-compose up -d postgres
+#
+# 2. Start Auth Service (Terminal 1):
+#    cd auth-service && ./mvnw spring-boot:run
+#    → http://localhost:8080
+#
+# 3. Start Whiteboard Service (Terminal 2):
+#    cd whiteboard-service && ./mvnw spring-boot:run
+#    → http://localhost:8081
+#
+# 4. Start Frontend (Terminal 3):
+#    cd frontend && npm install && npm run dev
+#    → http://localhost:3000
+#
+# See LOCAL_DEVELOPMENT.md for detailed instructions
