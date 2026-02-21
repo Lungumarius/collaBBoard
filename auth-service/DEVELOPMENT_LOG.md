@@ -33,7 +33,7 @@
 - [x] Created WhiteboardServiceApplication.java
 - [x] Setup application.properties (port 8081, schema: whiteboard)
 - [x] Copied Maven wrapper files
-- [x] Moved both services to `/Users/mariuslungu/Projects/collabboard/` folder (separate from voice_cloner)
+- [x] Moved both services to `/Users/mariuslungu/Projects/collabboard/` folder (separate from auth_cloner)
 - [x] Created main README.md in collabboard folder
 - [x] Created database schema migration (V1__init_whiteboard_schema.sql)
 - [x] Created models: Board, Shape, BoardCollaborator, BoardSnapshot

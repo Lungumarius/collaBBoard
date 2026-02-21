@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # Nginx - The Gatekeeper (Reverse Proxy)
+  nginx:
+    image: nginx:alpine
+    container_name: collabboard-nginx
+    restart: always
+    ports:
+      - "80:80"
+      # - "443:443" # Uncomment if you add SSL certificates manually later
+    volumes:
+      - ./nginx/nginx.cloud.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - auth-service
+      - whiteboard-service
+    networks:
+      - collabboard-network
+
+  # Backend 1: Auth Service
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: collabboard-auth
+    restart: always
+    environment:
+      # Database Connection (To be set in .env on server)
+      SPRING_DATASOURCE_URL: ${SUPABASE_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${SUPABASE_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${SUPABASE_DB_PASSWORD}
+      
+      # Security
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS} # e.g. https://your-frontend.vercel.app
+    deploy:
+      resources:
+        limits:
+          memory: 300M
+    networks:
+      - collabboard-network
+
+  # Backend 2: Whiteboard Service
+  whiteboard-service:
+    build:
+      context: ./whiteboard-service
+      dockerfile: Dockerfile
+    container_name: collabboard-whiteboard
+    restart: always
+    environment:
+      # Database Connection (Same Supabase DB)
+      SPRING_DATASOURCE_URL: ${SUPABASE_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${SUPABASE_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${SUPABASE_DB_PASSWORD}
+      
+      # Inter-service communication
+      AUTH_SERVICE_URL: http://auth-service:8080
+      
+      # Security
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+    deploy:
+      resources:
+        limits:
+          memory: 350M
+    networks:
+      - collabboard-network
+
+networks:
+  collabboard-network:
+    driver: bridge

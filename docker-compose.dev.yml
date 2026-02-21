@@ -27,7 +27,7 @@ services:
       - ./auth-service:/app
       - ~/.m2:/root/.m2  # Cache maven dependencies
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-platform}?currentSchema=voice
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-platform}?currentSchema=auth
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       JWT_SECRET: ${JWT_SECRET:-98d3b3867053257f3e328a336d7b4ab7f217c5fb4e67b952726238838140e4a93b308e47159e5394ab32bafc0547d52d}

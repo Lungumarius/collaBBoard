@@ -23,4 +23,4 @@ COPY --from=build /app/target/*.jar app.jar
 # -Xmx300m: Max heap size 300MB
 # -Xms128m: Start heap size 128MB
 EXPOSE 8080
-ENTRYPOINT ["java", "-Xmx300m", "-Xms128m", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xmx256m", "-Xms128m", "-XX:+UseSerialGC", "-Xss512k", "-XX:MaxMetaspaceSize=128m", "-jar", "app.jar"]
