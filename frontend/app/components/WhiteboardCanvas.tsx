@@ -214,6 +214,10 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
           // For Paths, ensure fill is transparent if not specified or empty
           if (obj instanceof fabric.Path) {
              updateData.fill = updateData.fill || null;
+             // DO NOT update path data on existing objects, it corrupts dimensions/rendering
+             if (updateData.path) {
+               delete updateData.path;
+             }
           }
           
           obj.set(updateData);
