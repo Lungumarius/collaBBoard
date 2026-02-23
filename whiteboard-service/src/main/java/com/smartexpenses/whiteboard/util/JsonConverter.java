@@ -33,8 +33,10 @@ public class JsonConverter implements AttributeConverter<Map<String, Object>, St
         }
         try {
             return objectMapper.readValue(dbData, new TypeReference<Map<String, Object>>() {});
-        } catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("Error converting JSON to map", e);
+        } catch (Exception e) {
+            // Log error but don't crash, return empty map so we can at least see other data
+            System.err.println("Error converting JSON to map: " + e.getMessage());
+            return Collections.emptyMap();
         }
     }
 }
