@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "board_collaborators", schema = "whiteboard", 
+@Table(name = "board_collaborators", 
        uniqueConstraints = @UniqueConstraint(columnNames = {"board_id", "user_id"}))
 @Data
 @Builder

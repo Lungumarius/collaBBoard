@@ -1,11 +1,10 @@
 package com.smartexpenses.whiteboard.model;
 
 import com.smartexpenses.whiteboard.model.enums.ShapeType;
+import com.smartexpenses.whiteboard.util.JsonConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
@@ -13,7 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Entity
-@Table(name = "shapes", schema = "whiteboard")
+@Table(name = "shapes")
 @Data
 @Builder
 @NoArgsConstructor
@@ -32,13 +31,9 @@ public class Shape {
     @Column(nullable = false, length = 50)
     private ShapeType type;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(nullable = false, columnDefinition = "jsonb")
-    private Map<String, Object> data; // Flexible JSON for shape properties:
-                                      // - coordinates (x, y, width, height)
-                                      // - color, strokeWidth
-                                      // - text content
-                                      // - etc.
+    @Convert(converter = JsonConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private Map<String, Object> data; 
 
     @Column(name = "layer_order", nullable = false)
     @Builder.Default
