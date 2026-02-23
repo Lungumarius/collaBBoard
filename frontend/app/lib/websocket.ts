@@ -2,7 +2,31 @@ import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { WebSocketMessage, WebSocketMessageType } from '@/app/types';
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8081/ws';
+// Deduce WebSocket URL from API URL if not explicitly provided
+const getWsUrl = () => {
+  if (process.env.NEXT_PUBLIC_WS_URL) {
+    return process.env.NEXT_PUBLIC_WS_URL;
+  }
+  
+  // Fallback: Use API URL but append /ws
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (apiUrl) {
+    // If API URL is http(s)://backend.com/api, we likely want http(s)://backend.com/ws
+    // Or if it's just the root http(s)://backend.com, then /ws
+    
+    // Remove trailing slash
+    const cleanUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
+    
+    // If URL ends with /api, remove it to get root
+    const rootUrl = cleanUrl.endsWith('/api') ? cleanUrl.slice(0, -4) : cleanUrl;
+    
+    return `${rootUrl}/ws`;
+  }
+  
+  return 'http://localhost:8081/ws';
+};
+
+const WS_URL = getWsUrl();
 
 class WebSocketClient {
   private client: Client | null = null;
