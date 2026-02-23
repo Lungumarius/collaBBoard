@@ -9,6 +9,7 @@ interface WhiteboardToolbarProps {
   selectedColor?: string;
   onExport?: () => void;
   onTemplateSelect?: (template: string) => void;
+  onResetBoard?: () => void;
 }
 
 export default function WhiteboardToolbar({
@@ -18,6 +19,7 @@ export default function WhiteboardToolbar({
   selectedColor = '#000000',
   onExport,
   onTemplateSelect,
+  onResetBoard,
 }: WhiteboardToolbarProps) {
   const tools = [
     { id: 'select', name: 'Select', icon: '↖️' },
@@ -93,10 +95,11 @@ export default function WhiteboardToolbar({
         {/* Templates */}
         {onTemplateSelect && (
           <select
+            value="" // Force reset after selection
             onChange={(e) => onTemplateSelect(e.target.value)}
             className="text-sm bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg border border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors cursor-pointer"
           >
-            <option value="">Select Template...</option>
+            <option value="" disabled>Add Template...</option>
             <option value="brainstorming">Brainstorming</option>
             <option value="wireframe">Wireframe</option>
             <option value="mindmap">Mind Map</option>
@@ -106,10 +109,23 @@ export default function WhiteboardToolbar({
 
       {/* Right Side Actions */}
       <div className="flex items-center gap-4">
+        {/* Reset Button */}
+        {onResetBoard && (
+          <button
+            onClick={onResetBoard}
+            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            title="Clear Board"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        )}
+
         {/* Cloud Status Indicator */}
         <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
           <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-          Saved to Cloud
+          Saved
         </div>
 
         {onExport && (
