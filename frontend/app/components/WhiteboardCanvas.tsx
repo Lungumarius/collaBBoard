@@ -13,9 +13,10 @@ interface WhiteboardCanvasProps {
   token: string;
   shapes: Shape[];
   onShapeChange?: (shapes: Shape[]) => void;
+  onToolChange?: (tool: string) => void;
 }
 
-export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange }: WhiteboardCanvasProps) {
+export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange, onToolChange }: WhiteboardCanvasProps) {
   const currentUser = useAuthStore((state) => state.user);
   const currentUserId = currentUser?.id;
   
@@ -615,6 +616,12 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
               layerOrder: canvas.getObjects().length - 1,
             });
           }
+          
+          // AUTO-SWITCH TO SELECT TOOL (Fix sticky drawing bug)
+          // Don't switch for Pen (free drawing) or Text (modal handles it)
+          if (selectedToolRef.current !== 'pen' && selectedToolRef.current !== 'text' && selectedToolRef.current !== 'sticky') {
+             handleToolSelect('select');
+          }
         }
       }
       setIsDrawing(false);
@@ -971,6 +978,8 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
   const handleToolSelect = useCallback((tool: string) => {
     setSelectedTool(tool);
     selectedToolRef.current = tool;
+    if (onToolChange) onToolChange(tool);
+
     if (!fabricCanvasRef.current) return;
 
     const canvas = fabricCanvasRef.current;

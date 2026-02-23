@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useAuthStore } from '@/app/store/authStore';
 import { useWhiteboardStore } from '@/app/store/whiteboardStore';
 import WhiteboardCanvas from '@/app/components/WhiteboardCanvas';
-import { apiClient } from '@/app/lib/api';
+import ColdStartLoader from '@/app/components/ColdStartLoader';
 
 export default function BoardViewPage() {
   const router = useRouter();
@@ -24,6 +24,7 @@ export default function BoardViewPage() {
     }
 
     if (boardId) {
+      // Always fetch fresh data on mount, even if store has something (could be stale)
       fetchBoard(boardId)
         .then(() => {
           return fetchShapes(boardId);
@@ -46,11 +47,12 @@ export default function BoardViewPage() {
     return null;
   }
 
-  if (loading && !shapesLoaded) {
+  // Show loader while fetching board data OR shapes
+  if (loading || !currentBoard || !shapesLoaded) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600 text-lg">Materializing Ideas...</p>
+      <div className="min-h-screen flex items-center justify-center aurora-bg-light">
+        <div className="glass-panel p-8 rounded-2xl shadow-xl">
+          <ColdStartLoader />
         </div>
       </div>
     );
@@ -58,22 +60,18 @@ export default function BoardViewPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 text-lg mb-4">{error}</p>
+      <div className="min-h-screen flex items-center justify-center aurora-bg-light">
+        <div className="glass-panel p-8 rounded-2xl shadow-xl text-center">
+          <p className="text-red-600 text-lg mb-4 font-medium">{error}</p>
           <button
             onClick={() => router.push('/boards')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-6 py-2 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg"
           >
-            Back to Boards
+            Back to Dashboard
           </button>
         </div>
       </div>
     );
-  }
-
-  if (!currentBoard || !accessToken) {
-    return null;
   }
 
   return (
