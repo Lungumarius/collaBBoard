@@ -1083,7 +1083,7 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
     }
   }, [boardId]);
 
-  // Secondary effect for shapes loading
+  // Secondary effect for shapes loading - Ensures rendering after fetch
   useEffect(() => {
     if (!fabricCanvasRef.current || !shapes || shapes.length === 0) return;
     
