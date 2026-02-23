@@ -5,6 +5,7 @@ import { apiClient } from '@/app/lib/api';
 import { useAuthStore } from '@/app/store/authStore';
 import { useRouter } from 'next/navigation';
 import ColdStartLoader from './ColdStartLoader';
+import Logo from './Logo';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -32,8 +33,8 @@ export default function LoginForm() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
-        <div className="bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-xl border border-white/20">
+      <div className="min-h-screen flex items-center justify-center aurora-bg-light">
+        <div className="glass-panel p-8 rounded-2xl shadow-xl">
           <ColdStartLoader />
         </div>
       </div>
@@ -41,20 +42,22 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
-      <div className="max-w-md w-full bg-white/80 backdrop-blur-md rounded-2xl shadow-xl p-8 border border-white/50">
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-blue-600 rounded-xl mx-auto mb-4 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-blue-600/20">
-            C
+    <div className="min-h-screen flex items-center justify-center aurora-bg-light p-4">
+      <div className="max-w-md w-full glass-panel rounded-3xl shadow-2xl p-8 md:p-12 animate-float">
+        <div className="text-center mb-10 flex flex-col items-center">
+          <div className="mb-6 transform hover:scale-105 transition-transform duration-500">
+             <Logo className="w-16 h-16" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800">Welcome Back</h2>
-          <p className="text-gray-500 mt-2 text-sm">Sign in to continue to your workspace.</p>
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Welcome Back</h2>
+          <p className="text-gray-500 mt-3 text-base">
+            Your creative space is ready. Let's make something amazing.
+          </p>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email
+            <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2 ml-1">
+              Email Address
             </label>
             <input
               id="email"
@@ -62,47 +65,56 @@ export default function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
-              placeholder="your@email.com"
+              className="w-full px-5 py-3 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 text-gray-900 bg-white/50 backdrop-blur-sm transition-all outline-none"
+              placeholder="name@company.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
+            <div className="flex justify-between items-center mb-2 ml-1">
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
+                Password
+              </label>
+              <a href="#" className="text-xs text-blue-600 hover:text-blue-700 font-medium">Forgot?</a>
+            </div>
             <input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+              className="w-full px-5 py-3 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 text-gray-900 bg-white/50 backdrop-blur-sm transition-all outline-none"
               placeholder="••••••••"
             />
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {error}
+            <div className="bg-red-50/80 backdrop-blur-sm border border-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2">
+              ⚠️ {error}
             </div>
           )}
 
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-xl transition duration-200 shadow-lg shadow-blue-600/20 active:scale-[0.98]"
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl transition duration-300 shadow-lg shadow-blue-600/20 active:scale-[0.98] transform hover:-translate-y-0.5"
           >
-            Continue
+            Sign In
           </button>
         </form>
 
-        <p className="mt-8 text-center text-sm text-gray-500">
-          New to CollabBoard?{' '}
-          <a href="/register" className="text-blue-600 hover:text-blue-700 font-medium hover:underline decoration-2 underline-offset-2">
-            Create an account
-          </a>
-        </p>
+        <div className="mt-8 text-center pt-6 border-t border-gray-100">
+          <p className="text-sm text-gray-500">
+            Don't have an account?{' '}
+            <a href="/register" className="text-indigo-600 hover:text-indigo-700 font-bold hover:underline decoration-2 underline-offset-4 transition-colors">
+              Join for free
+            </a>
+          </p>
+        </div>
       </div>
+      
+      {/* Decorative blobs */}
+      <div className="fixed top-20 left-20 w-64 h-64 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse-slow"></div>
+      <div className="fixed bottom-20 right-20 w-64 h-64 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse-slow" style={{animationDelay: "2s"}}></div>
     </div>
   );
 }

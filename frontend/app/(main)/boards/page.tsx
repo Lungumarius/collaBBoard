@@ -8,6 +8,7 @@ import { apiClient } from '@/app/lib/api';
 import BoardCard from '@/app/components/BoardCard';
 import { Board } from '@/app/types';
 import ColdStartLoader from '@/app/components/ColdStartLoader';
+import Logo from '@/app/components/Logo';
 
 export default function BoardsPage() {
   const router = useRouter();
@@ -101,24 +102,23 @@ export default function BoardsPage() {
 
   if (loading && boards.length === 0 && !showPublicBoards) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center aurora-bg-light">
         <ColdStartLoader />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen aurora-bg-light text-gray-800">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-10 border-b border-gray-100">
+      <header className="fixed top-0 w-full z-50 glass-panel border-b border-white/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shadow-md shadow-blue-600/20">C</div>
-            <h1 className="text-xl font-bold text-gray-800 tracking-tight">CollabBoard</h1>
+          <div className="flex items-center gap-2 transform hover:scale-105 transition-transform duration-300">
+             <Logo className="w-8 h-8" withText={true} />
           </div>
           
           <div className="flex items-center gap-6">
-            <span className="text-sm font-medium text-gray-500 hidden sm:block">
+            <span className="text-sm font-semibold text-gray-600 hidden sm:block">
               {currentUser?.firstName} {currentUser?.lastName}
             </span>
             <button
@@ -126,7 +126,7 @@ export default function BoardsPage() {
                 useAuthStore.getState().logout();
                 router.push('/login');
               }}
-              className="text-sm font-medium text-gray-500 hover:text-red-600 transition-colors"
+              className="text-sm font-bold text-gray-500 hover:text-red-500 transition-colors bg-gray-100/50 hover:bg-red-50 px-3 py-1.5 rounded-lg"
             >
               Sign Out
             </button>
@@ -135,55 +135,59 @@ export default function BoardsPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 animate-float" style={{animationDuration: '10s'}}>
         
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">My Projects</h2>
-          <p className="text-gray-500">Manage your boards and collaborations.</p>
+        <div className="mb-10 text-center sm:text-left">
+          <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600 mb-2 tracking-tight">
+            Your Workspace
+          </h2>
+          <p className="text-lg text-gray-500 font-medium">Manage your boards and collaborations.</p>
         </div>
 
         {/* Action Buttons */}
-        <div className="mb-8 flex gap-3">
+        <div className="mb-10 flex flex-wrap gap-4 justify-center sm:justify-start">
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-xl transition duration-200 shadow-lg shadow-blue-600/20 active:scale-[0.98] flex items-center gap-2"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-6 py-3 rounded-xl transition duration-200 shadow-lg shadow-blue-600/20 active:scale-[0.98] flex items-center gap-2 transform hover:-translate-y-1"
           >
-            <span>+</span> New Board
+            <span className="text-xl leading-none">+</span> New Board
           </button>
           <button
             onClick={handleLoadPublicBoards}
-            className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium px-5 py-2.5 rounded-xl transition duration-200 flex items-center gap-2"
+            className="bg-white/60 hover:bg-white border border-gray-200 text-gray-700 font-bold px-6 py-3 rounded-xl transition duration-200 flex items-center gap-2 shadow-sm hover:shadow-md backdrop-blur-sm"
           >
-            Explore Public
+            Explore Public Gallery
           </button>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl mb-6 text-sm">
-            {error}
+          <div className="bg-red-50/90 backdrop-blur-md border border-red-100 text-red-600 px-6 py-4 rounded-2xl mb-8 text-sm font-medium shadow-sm flex items-center gap-3">
+            <span className="text-xl">⚠️</span> {error}
           </div>
         )}
 
         {/* Public Boards Section */}
         {showPublicBoards && (
-          <div className="mb-12 animate-fadeIn">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">Public Gallery</h3>
+          <div className="mb-16 animate-fadeIn">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <span className="text-2xl">🌍</span> Public Gallery
+              </h3>
               <button
                 onClick={() => setShowPublicBoards(false)}
-                className="text-sm text-gray-500 hover:text-gray-800"
+                className="text-sm font-semibold text-gray-500 hover:text-gray-900 bg-gray-100 px-3 py-1.5 rounded-lg transition-colors"
               >
-                Close
+                Close Gallery
               </button>
             </div>
             {publicBoards.length === 0 ? (
-              <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-200">
-                <p className="text-gray-500">No public boards found.</p>
+              <div className="text-center py-16 bg-white/40 backdrop-blur-md rounded-3xl border border-dashed border-gray-200">
+                <p className="text-gray-500 font-medium">No public boards found in the archives.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {publicBoards.map((board) => (
                   <BoardCard
                     key={board.id}
@@ -199,23 +203,23 @@ export default function BoardsPage() {
 
         {/* Boards Grid */}
         {!loading && boards.length === 0 && !showPublicBoards && (
-          <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200">
-            <div className="text-4xl mb-4 opacity-50">🎨</div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">No boards yet</h3>
-            <p className="text-gray-500 mb-6 max-w-sm mx-auto">
-              Create your first whiteboard to start visualizing your ideas.
+          <div className="text-center py-20 bg-white/40 backdrop-blur-md rounded-3xl border border-dashed border-gray-300 shadow-sm mx-auto max-w-2xl">
+            <div className="text-6xl mb-6 opacity-80 animate-bounce">🎨</div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">Tabula Rasa</h3>
+            <p className="text-gray-500 mb-8 max-w-md mx-auto text-lg">
+              The canvas is blank. Start something chaotic and beautiful.
             </p>
             <button
                onClick={() => setShowCreateModal(true)}
-               className="text-blue-600 font-medium hover:underline"
+               className="text-blue-600 font-bold hover:text-blue-700 hover:underline decoration-2 underline-offset-4 transition-colors"
             >
-              Create a board
+              Create your first board →
             </button>
           </div>
         )}
 
         {!loading && boards.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {boards.map((board) => (
               <BoardCard
                 key={board.id}

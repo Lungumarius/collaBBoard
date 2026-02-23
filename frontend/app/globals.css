@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #fdfdfd;
   --foreground: #171717;
 }
 
@@ -22,4 +22,64 @@ body {
 input, textarea, select {
   color: #111827 !important; /* text-gray-900 */
   background-color: #ffffff !important; /* bg-white */
+}
+
+/* Aurora Background */
+.aurora-bg {
+  background-color: #ffffff;
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+    radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+    radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+  background-size: 200% 200%;
+  animation: aurora-move 15s ease infinite alternate;
+}
+
+.aurora-bg-light {
+  background-color: #f8fafc;
+  background-image: 
+    radial-gradient(at 10% 10%, hsla(210, 80%, 95%, 1) 0px, transparent 50%),
+    radial-gradient(at 90% 10%, hsla(260, 80%, 95%, 1) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, hsla(180, 80%, 97%, 1) 0px, transparent 50%);
+  background-attachment: fixed;
+  background-size: 100% 100%;
+}
+
+@keyframes aurora-move {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
+
+/* Glassmorphism */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+}
+
+.glass-card-hover {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.glass-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.1);
+  border-color: rgba(99, 102, 241, 0.2); /* Indigo hint */
+}
+
+/* Float Animation */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

@@ -5,6 +5,7 @@ import { apiClient } from '@/app/lib/api';
 import { useAuthStore } from '@/app/store/authStore';
 import { useRouter } from 'next/navigation';
 import ColdStartLoader from './ColdStartLoader';
+import Logo from './Logo';
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -31,7 +32,6 @@ export default function RegisterForm() {
       setError(err.message || 'Registration failed. Please try again.');
       setLoading(false);
     }
-    // No setLoading(false) on success
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,8 +40,8 @@ export default function RegisterForm() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
-        <div className="bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-xl border border-white/20">
+      <div className="min-h-screen flex items-center justify-center aurora-bg-light">
+        <div className="glass-panel p-8 rounded-2xl shadow-xl">
           <ColdStartLoader />
         </div>
       </div>
@@ -49,20 +49,20 @@ export default function RegisterForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
-      <div className="max-w-md w-full bg-white/80 backdrop-blur-md rounded-2xl shadow-xl p-8 border border-white/50">
+    <div className="min-h-screen flex items-center justify-center aurora-bg-light p-4">
+      <div className="max-w-md w-full glass-panel rounded-3xl shadow-2xl p-8 animate-float">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-blue-600 rounded-xl mx-auto mb-4 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-blue-600/20">
-            C
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800">Create Account</h2>
-          <p className="text-gray-500 mt-2 text-sm">Join CollabBoard today.</p>
+           <div className="mb-6 transform hover:scale-105 transition-transform duration-500 inline-block">
+             <Logo className="w-16 h-16" />
+           </div>
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Create Account</h2>
+          <p className="text-gray-500 mt-2 text-sm">Join the next generation of collaboration.</p>
         </div>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="firstName" className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 ml-1">
                 First Name
               </label>
               <input
@@ -72,13 +72,13 @@ export default function RegisterForm() {
                 value={formData.firstName}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 text-gray-900 bg-white/50 transition-all outline-none"
                 placeholder="John"
               />
             </div>
 
             <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="lastName" className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 ml-1">
                 Last Name
               </label>
               <input
@@ -88,15 +88,15 @@ export default function RegisterForm() {
                 value={formData.lastName}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 text-gray-900 bg-white/50 transition-all outline-none"
                 placeholder="Doe"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email
+            <label htmlFor="email" className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 ml-1">
+              Work Email
             </label>
             <input
               id="email"
@@ -105,13 +105,13 @@ export default function RegisterForm() {
               value={formData.email}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
-              placeholder="your@email.com"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 text-gray-900 bg-white/50 transition-all outline-none"
+              placeholder="name@company.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+             <label htmlFor="password" className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 ml-1">
               Password
             </label>
             <input
@@ -122,32 +122,39 @@ export default function RegisterForm() {
               onChange={handleChange}
               required
               minLength={6}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 text-gray-900 bg-white/50 transition-all outline-none"
               placeholder="••••••••"
             />
+            <p className="text-xs text-gray-400 mt-1 ml-1">Must be at least 6 characters</p>
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <div className="bg-red-50/80 backdrop-blur-sm border border-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-medium">
               {error}
             </div>
           )}
 
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-xl transition duration-200 shadow-lg shadow-blue-600/20 active:scale-[0.98]"
+            className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white font-bold py-3.5 px-4 rounded-xl transition duration-300 shadow-lg shadow-purple-600/20 active:scale-[0.98] transform hover:-translate-y-0.5 mt-2"
           >
-            Get Started
+            Start Creating
           </button>
         </form>
 
-        <p className="mt-8 text-center text-sm text-gray-500">
-          Already have an account?{' '}
-          <a href="/login" className="text-blue-600 hover:text-blue-700 font-medium hover:underline decoration-2 underline-offset-2">
-            Log in
-          </a>
-        </p>
+        <div className="mt-8 text-center pt-6 border-t border-gray-100">
+          <p className="text-sm text-gray-500">
+            Already have an account?{' '}
+            <a href="/login" className="text-violet-600 hover:text-violet-700 font-bold hover:underline decoration-2 underline-offset-4 transition-colors">
+              Log in
+            </a>
+          </p>
+        </div>
       </div>
+      
+       {/* Decorative blobs */}
+       <div className="fixed bottom-10 left-10 w-72 h-72 bg-fuchsia-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse-slow"></div>
+       <div className="fixed top-10 right-10 w-72 h-72 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse-slow" style={{animationDelay: "1.5s"}}></div>
     </div>
   );
 }

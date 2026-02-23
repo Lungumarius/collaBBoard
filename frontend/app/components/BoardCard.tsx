@@ -2,6 +2,7 @@
 
 import { Board } from '@/app/types';
 import Link from 'next/link';
+import React from 'react';
 
 interface BoardCardProps {
   board: Board;
@@ -9,58 +10,67 @@ interface BoardCardProps {
   canDelete?: boolean;
 }
 
-export default function BoardCard({ board, onDelete, canDelete }: BoardCardProps) {
-  const handleDelete = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onDelete && canDelete) {
-      onDelete(board.id);
-    }
-  };
-
+export default function BoardCard({ board, onDelete, canDelete = false }: BoardCardProps) {
   return (
-    <Link href={`/boards/${board.id}`}>
-      <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-200 p-6 border border-gray-200 hover:border-blue-300 cursor-pointer relative group">
-        <div className="flex justify-between items-start mb-4">
-          <h3 className="text-xl font-semibold text-gray-800 truncate flex-1">
-            {board.name}
-          </h3>
-          {canDelete && (
-            <button
-              onClick={handleDelete}
-              className="ml-2 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
-              title="Delete board"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
-          )}
-        </div>
+    <div className="group relative">
+      {/* Delete Button - Positioned outside the link to prevent navigation */}
+      {canDelete && onDelete && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onDelete(board.id);
+          }}
+          className="absolute top-4 right-4 z-20 p-2 text-gray-400 hover:text-red-500 bg-white/50 hover:bg-white rounded-full transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-sm hover:shadow-md"
+          title="Delete Board"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      )}
 
-        {board.description && (
-          <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-            {board.description}
-          </p>
-        )}
+      <Link href={`/boards/${board.id}`}>
+        <div className="glass-panel h-full rounded-2xl p-6 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 border border-white/60 bg-white/40 flex flex-col relative overflow-hidden">
+          
+          {/* Subtle gradient overlay on hover */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50/0 to-indigo-50/0 group-hover:from-blue-50/30 group-hover:to-indigo-50/30 transition-colors duration-300 pointer-events-none"></div>
 
-        <div className="flex items-center justify-between text-sm text-gray-500">
-          <div className="flex items-center gap-2">
+          <div className="flex items-start justify-between mb-4 relative z-10">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-2xl shadow-inner group-hover:scale-110 transition-transform duration-300">
+              🎨
+            </div>
+            
             {board.isPublic ? (
-              <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+              <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50/80 px-2 py-1 rounded-md border border-emerald-100/50 uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 Public
               </span>
             ) : (
-              <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-medium">
+              <span className="flex items-center gap-1 text-[10px] font-bold text-gray-500 bg-gray-50/80 px-2 py-1 rounded-md border border-gray-100/50 uppercase tracking-wider">
                 Private
               </span>
             )}
           </div>
-          <span className="text-xs">
-            {new Date(board.updatedAt).toLocaleDateString()}
-          </span>
+
+          <h3 className="text-xl font-bold text-gray-900 mb-2 tracking-tight group-hover:text-blue-600 transition-colors relative z-10">
+            {board.name}
+          </h3>
+          
+          <p className="text-gray-500 text-sm line-clamp-2 mb-6 flex-grow font-medium leading-relaxed relative z-10">
+            {board.description || 'No description provided.'}
+          </p>
+
+          <div className="mt-auto pt-4 border-t border-gray-100/50 flex items-center justify-between relative z-10">
+            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Updated {new Date(board.updatedAt || board.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+            </span>
+            <span className="text-xs font-bold text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-2 group-hover:translate-x-0">
+              Open Board →
+            </span>
+          </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 }
