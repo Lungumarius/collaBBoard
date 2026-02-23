@@ -18,13 +18,19 @@ export default function BoardViewPage() {
   const [shapesLoaded, setShapesLoaded] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated || !accessToken) {
-      router.push('/login');
-      return;
+    // Only redirect if we are sure user is NOT authenticated after hydration
+    const token = useAuthStore.getState().accessToken;
+    if (!token) {
+       const timer = setTimeout(() => {
+          if (!useAuthStore.getState().accessToken) {
+             router.push('/login');
+          }
+       }, 1000); // 1 second grace period
+       return () => clearTimeout(timer);
     }
 
     if (boardId) {
-      // Always fetch fresh data on mount, even if store has something (could be stale)
+      // Always fetch fresh data on mount
       fetchBoard(boardId)
         .then(() => {
           return fetchShapes(boardId);
@@ -41,14 +47,10 @@ export default function BoardViewPage() {
     return () => {
       resetBoard();
     };
-  }, [boardId, isAuthenticated, accessToken, router, fetchBoard, fetchShapes, resetBoard]);
+  }, [boardId, router, fetchBoard, fetchShapes, resetBoard]);
 
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  // Show loader while fetching board data OR shapes OR waiting for auth
-  if (loading || !currentBoard || !shapesLoaded || !accessToken) {
+  // Show loader while fetching data. We allow !accessToken here because we handle redirect in useEffect
+  if (loading || !currentBoard || !shapesLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center aurora-bg-light">
         <div className="glass-panel p-8 rounded-2xl shadow-xl">
