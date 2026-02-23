@@ -90,7 +90,7 @@ public class WebSocketController {
             log.info("Shape created and broadcasted: {} on board: {}", shapeResponse.getId(), message.getBoardId());
 
         } catch (Exception e) {
-            log.error("Error creating shape via WebSocket: {}", e.getMessage());
+            log.error("CRITICAL ERROR creating shape via WebSocket: ", e); // Print stack trace
             sendErrorToUser(userId, "Failed to create shape: " + e.getMessage());
         }
     }
@@ -143,7 +143,7 @@ public class WebSocketController {
             log.info("Shape updated and broadcasted: {} on board: {}", message.getShapeId(), message.getBoardId());
 
         } catch (Exception e) {
-            log.error("Error updating shape via WebSocket: {}", e.getMessage());
+            log.error("CRITICAL ERROR updating shape via WebSocket: ", e);
             sendErrorToUser(userId, "Failed to update shape: " + e.getMessage());
         }
     }
@@ -183,7 +183,7 @@ public class WebSocketController {
             log.info("Shape deleted and broadcasted: {} on board: {}", message.getShapeId(), message.getBoardId());
 
         } catch (Exception e) {
-            log.error("Error deleting shape via WebSocket: {}", e.getMessage());
+            log.error("CRITICAL ERROR deleting shape via WebSocket: ", e);
             sendErrorToUser(userId, "Failed to delete shape: " + e.getMessage());
         }
     }
