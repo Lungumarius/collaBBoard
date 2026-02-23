@@ -17,9 +17,10 @@ export default function HomePage() {
   }, [isAuthenticated, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
-        <p className="text-gray-600">Redirecting...</p>
+        <div className="mb-4 text-4xl animate-bounce">🎨</div>
+        <p className="text-gray-600 font-mono animate-pulse">Initializing Workspace Protocol...</p>
       </div>
     </div>
   );

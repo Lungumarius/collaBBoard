@@ -24,6 +24,7 @@ interface WhiteboardState {
   addShape: (shape: Shape) => void;
   updateShape: (shapeId: string, data: Partial<Shape>) => void;
   removeShape: (shapeId: string) => void;
+  resetBoard: () => void;
 }
 
 export const useWhiteboardStore = create<WhiteboardState>((set, get) => ({
@@ -32,6 +33,8 @@ export const useWhiteboardStore = create<WhiteboardState>((set, get) => ({
   shapes: [],
   loading: false,
   error: null,
+
+  resetBoard: () => set({ currentBoard: null, shapes: [], error: null }),
 
   fetchBoards: async () => {
     set({ loading: true, error: null });

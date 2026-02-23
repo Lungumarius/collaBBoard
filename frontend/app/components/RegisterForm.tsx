@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { apiClient } from '@/app/lib/api';
 import { useAuthStore } from '@/app/store/authStore';
 import { useRouter } from 'next/navigation';
+import ColdStartLoader from './ColdStartLoader';
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -28,19 +29,35 @@ export default function RegisterForm() {
       router.push('/boards');
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please try again.');
-    } finally {
       setLoading(false);
     }
+    // No setLoading(false) on success
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
+        <div className="bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-xl border border-white/20">
+          <ColdStartLoader />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
-        <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">Create Account</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
+      <div className="max-w-md w-full bg-white/80 backdrop-blur-md rounded-2xl shadow-xl p-8 border border-white/50">
+        <div className="text-center mb-8">
+          <div className="w-12 h-12 bg-blue-600 rounded-xl mx-auto mb-4 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-blue-600/20">
+            C
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800">Create Account</h2>
+          <p className="text-gray-500 mt-2 text-sm">Join CollabBoard today.</p>
+        </div>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
@@ -118,16 +135,15 @@ export default function RegisterForm() {
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-xl transition duration-200 shadow-lg shadow-blue-600/20 active:scale-[0.98]"
           >
-            {loading ? 'Creating account...' : 'Sign Up'}
+            Get Started
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
+        <p className="mt-8 text-center text-sm text-gray-500">
           Already have an account?{' '}
-          <a href="/login" className="text-blue-600 hover:text-blue-700 font-semibold">
+          <a href="/login" className="text-blue-600 hover:text-blue-700 font-medium hover:underline decoration-2 underline-offset-2">
             Log in
           </a>
         </p>

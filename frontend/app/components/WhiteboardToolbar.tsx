@@ -5,7 +5,7 @@ import { ShapeType } from '@/app/types';
 interface WhiteboardToolbarProps {
   selectedTool: string;
   onToolSelect: (tool: string) => void;
-  onColorChange?: (color: string) => void;
+  onColorChange: (color: string) => void;
   selectedColor?: string;
   onExport?: () => void;
   onTemplateSelect?: (template: string) => void;
@@ -26,97 +26,104 @@ export default function WhiteboardToolbar({
     { id: 'circle', name: 'Circle', icon: '○' },
     { id: 'text', name: 'Text', icon: 'T' },
     { id: 'arrow', name: 'Arrow', icon: '→' },
-    { id: 'line', name: 'Line', icon: '─' },
     { id: 'sticky', name: 'Sticky Note', icon: '📝' },
   ];
 
   const colors = [
     '#000000', '#FF0000', '#00FF00', '#0000FF',
     '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500',
-    '#800080', '#FFC0CB', '#A52A2A', '#808080',
-  ];
-
-  const templates = [
-    { id: 'brainstorming', name: 'Brainstorming' },
-    { id: 'wireframe', name: 'Wireframe' },
-    { id: 'mindmap', name: 'Mind Map' },
   ];
 
   return (
-    <div className="bg-gray-800 text-white p-4 flex items-center gap-4 shadow-lg">
-      {/* Tools */}
-      <div className="flex items-center gap-2 border-r border-gray-600 pr-4">
-        {tools.map((tool) => (
-          <button
-            key={tool.id}
-            onClick={() => onToolSelect(tool.id)}
-            className={`px-3 py-2 rounded-lg transition-all duration-200 ${
-              selectedTool === tool.id
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-            }`}
-            title={tool.name}
-          >
-            <span className="text-lg">{tool.icon}</span>
-          </button>
-        ))}
-      </div>
+    <div className="bg-white/90 backdrop-blur-md border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm z-50">
+      
+      <div className="flex items-center gap-6">
+        {/* Tools Group */}
+        <div className="flex bg-gray-100 p-1 rounded-xl gap-1">
+          {tools.map((tool) => (
+            <button
+              key={tool.id}
+              onClick={() => onToolSelect(tool.id)}
+              className={`p-2 rounded-lg transition-all duration-200 ${
+                selectedTool === tool.id
+                  ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'
+              }`}
+              title={tool.name}
+            >
+              <span className="text-xl block w-6 h-6 flex items-center justify-center leading-none">{tool.icon}</span>
+            </button>
+          ))}
+        </div>
 
-      {/* Color Picker */}
-      {onColorChange && (
-        <div className="flex items-center gap-2 border-r border-gray-600 pr-4">
-          <label className="text-sm font-medium">Color:</label>
-          <div className="flex gap-1">
-            {colors.map((color) => (
+        {/* Separator */}
+        <div className="h-8 w-px bg-gray-200"></div>
+
+        {/* Color Picker */}
+        <div className="flex items-center gap-2">
+          <div className="flex -space-x-1">
+            {colors.slice(0, 5).map((color) => (
               <button
                 key={color}
                 onClick={() => onColorChange(color)}
-                className={`w-8 h-8 rounded border-2 ${
-                  selectedColor === color ? 'border-white' : 'border-gray-500'
+                className={`w-6 h-6 rounded-full border border-white ring-1 ring-gray-200 transition-transform hover:scale-110 hover:z-10 ${
+                   selectedColor === color ? 'scale-110 z-10 ring-2 ring-offset-1 ring-blue-500' : ''
                 }`}
                 style={{ backgroundColor: color }}
                 title={color}
               />
             ))}
           </div>
-          <input
-            type="color"
-            value={selectedColor}
-            onChange={(e) => onColorChange(e.target.value)}
-            className="w-8 h-8 rounded border border-gray-500 cursor-pointer"
-          />
+          <div className="relative group">
+            <input
+              type="color"
+              value={selectedColor}
+              onChange={(e) => onColorChange(e.target.value)}
+              className="w-8 h-8 rounded-full overflow-hidden border-0 p-0 cursor-pointer opacity-0 absolute inset-0"
+            />
+            <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-xs text-gray-500 bg-gray-50 group-hover:bg-gray-100 transition-colors">
+              +
+            </div>
+          </div>
         </div>
-      )}
 
-      {/* Templates */}
-      {onTemplateSelect && (
-        <div className="flex items-center gap-2 border-r border-gray-600 pr-4">
-          <label className="text-sm font-medium">Templates:</label>
+        {/* Separator */}
+        <div className="h-8 w-px bg-gray-200"></div>
+
+        {/* Templates */}
+        {onTemplateSelect && (
           <select
             onChange={(e) => onTemplateSelect(e.target.value)}
-            className="bg-gray-700 text-white px-3 py-1 rounded border border-gray-500 focus:ring-2 focus:ring-blue-500"
+            className="text-sm bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg border border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors cursor-pointer"
           >
-            <option value="">None</option>
-            {templates.map((template) => (
-              <option key={template.id} value={template.id}>
-                {template.name}
-              </option>
-            ))}
+            <option value="">Select Template...</option>
+            <option value="brainstorming">Brainstorming</option>
+            <option value="wireframe">Wireframe</option>
+            <option value="mindmap">Mind Map</option>
           </select>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Export */}
-      {onExport && (
-        <div className="flex items-center gap-2 ml-auto">
+      {/* Right Side Actions */}
+      <div className="flex items-center gap-4">
+        {/* Cloud Status Indicator */}
+        <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
+          <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+          Saved to Cloud
+        </div>
+
+        {onExport && (
           <button
             onClick={onExport}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors font-medium"
+            className="flex items-center gap-2 px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-lg transition-all shadow-sm active:scale-[0.98]"
           >
-            Export
+            <span>Download</span>
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

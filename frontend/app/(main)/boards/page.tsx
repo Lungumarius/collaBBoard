@@ -7,6 +7,7 @@ import { useWhiteboardStore } from '@/app/store/whiteboardStore';
 import { apiClient } from '@/app/lib/api';
 import BoardCard from '@/app/components/BoardCard';
 import { Board } from '@/app/types';
+import ColdStartLoader from '@/app/components/ColdStartLoader';
 
 export default function BoardsPage() {
   const router = useRouter();
@@ -98,22 +99,36 @@ export default function BoardsPage() {
     return null;
   }
 
+  if (loading && boards.length === 0 && !showPublicBoards) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <ColdStartLoader />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50/50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">My Whiteboards</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-gray-600">Welcome, {currentUser?.firstName}</span>
+      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-10 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shadow-md shadow-blue-600/20">C</div>
+            <h1 className="text-xl font-bold text-gray-800 tracking-tight">CollabBoard</h1>
+          </div>
+          
+          <div className="flex items-center gap-6">
+            <span className="text-sm font-medium text-gray-500 hidden sm:block">
+              {currentUser?.firstName} {currentUser?.lastName}
+            </span>
             <button
               onClick={() => {
                 useAuthStore.getState().logout();
                 router.push('/login');
               }}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              className="text-sm font-medium text-gray-500 hover:text-red-600 transition-colors"
             >
-              Logout
+              Sign Out
             </button>
           </div>
         </div>
@@ -121,54 +136,54 @@ export default function BoardsPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">My Projects</h2>
+          <p className="text-gray-500">Manage your boards and collaborations.</p>
+        </div>
+
         {/* Action Buttons */}
-        <div className="mb-6 flex gap-4">
+        <div className="mb-8 flex gap-3">
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition duration-200"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-xl transition duration-200 shadow-lg shadow-blue-600/20 active:scale-[0.98] flex items-center gap-2"
           >
-            + Create New Board
+            <span>+</span> New Board
           </button>
           <button
             onClick={handleLoadPublicBoards}
-            className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg transition duration-200"
+            className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium px-5 py-2.5 rounded-xl transition duration-200 flex items-center gap-2"
           >
-            📋 Browse Public Boards
+            Explore Public
           </button>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+          <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl mb-6 text-sm">
             {error}
-          </div>
-        )}
-
-        {/* Loading State */}
-        {loading && (
-          <div className="text-center py-12">
-            <p className="text-gray-600">Loading boards...</p>
           </div>
         )}
 
         {/* Public Boards Section */}
         {showPublicBoards && (
-          <div className="mb-8">
+          <div className="mb-12 animate-fadeIn">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-800">Public Boards</h2>
+              <h3 className="text-lg font-semibold text-gray-800">Public Gallery</h3>
               <button
                 onClick={() => setShowPublicBoards(false)}
-                className="text-gray-600 hover:text-gray-800"
+                className="text-sm text-gray-500 hover:text-gray-800"
               >
-                Hide
+                Close
               </button>
             </div>
             {publicBoards.length === 0 ? (
-              <div className="text-center py-8 bg-gray-50 rounded-lg">
-                <p className="text-gray-600">No public boards available.</p>
+              <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-200">
+                <p className="text-gray-500">No public boards found.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {publicBoards.map((board) => (
                   <BoardCard
                     key={board.id}
@@ -182,15 +197,20 @@ export default function BoardsPage() {
           </div>
         )}
 
-        {/* My Boards Section */}
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold text-gray-800">My Boards</h2>
-        </div>
-
         {/* Boards Grid */}
-        {!loading && boards.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-600 mb-4">No boards yet. Create your first board!</p>
+        {!loading && boards.length === 0 && !showPublicBoards && (
+          <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200">
+            <div className="text-4xl mb-4 opacity-50">🎨</div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">No boards yet</h3>
+            <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+              Create your first whiteboard to start visualizing your ideas.
+            </p>
+            <button
+               onClick={() => setShowCreateModal(true)}
+               className="text-blue-600 font-medium hover:underline"
+            >
+              Create a board
+            </button>
           </div>
         )}
 

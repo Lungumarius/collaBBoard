@@ -14,7 +14,7 @@ export default function BoardViewPage() {
 
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const accessToken = useAuthStore((state) => state.accessToken);
-  const { currentBoard, shapes, loading, error, setError, fetchBoard, fetchShapes } = useWhiteboardStore();
+  const { currentBoard, shapes, loading, error, setError, fetchBoard, fetchShapes, resetBoard } = useWhiteboardStore();
   const [shapesLoaded, setShapesLoaded] = useState(false);
 
   useEffect(() => {
@@ -36,7 +36,11 @@ export default function BoardViewPage() {
           setError(err.message || 'Failed to load board');
         });
     }
-  }, [boardId, isAuthenticated, accessToken, router, fetchBoard, fetchShapes]);
+
+    return () => {
+      resetBoard();
+    };
+  }, [boardId, isAuthenticated, accessToken, router, fetchBoard, fetchShapes, resetBoard]);
 
   if (!isAuthenticated) {
     return null;
@@ -46,7 +50,7 @@ export default function BoardViewPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600 text-lg">Loading whiteboard...</p>
+          <p className="text-gray-600 text-lg">Materializing Ideas...</p>
         </div>
       </div>
     );

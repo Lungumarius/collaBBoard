@@ -15,9 +15,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "CollabBoard",
   description: "Real-time collaborative whiteboard",
-  icons: {
-    icon: "/favicon.svg",
-  },
 };
 
 export default function RootLayout({
