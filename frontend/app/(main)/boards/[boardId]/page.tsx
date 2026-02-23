@@ -47,8 +47,8 @@ export default function BoardViewPage() {
     return null;
   }
 
-  // Show loader while fetching board data OR shapes
-  if (loading || !currentBoard || !shapesLoaded) {
+  // Show loader while fetching board data OR shapes OR waiting for auth
+  if (loading || !currentBoard || !shapesLoaded || !accessToken) {
     return (
       <div className="min-h-screen flex items-center justify-center aurora-bg-light">
         <div className="glass-panel p-8 rounded-2xl shadow-xl">
@@ -102,7 +102,7 @@ export default function BoardViewPage() {
       {/* Canvas */}
       <WhiteboardCanvas
         boardId={boardId}
-        token={accessToken}
+        token={accessToken!}
         shapes={shapes}
       />
     </div>
