@@ -602,7 +602,8 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
         const currentTool = selectedToolRef.current;
         if (currentTool === 'pen') return;
         
-        const pointer = canvas.getPointer(opt.e);
+        // Fabric v6: Use scenePoint directly if available, otherwise fallback
+        const pointer = opt.scenePoint || canvas.getPointer(opt.e);
         if (pointer) {
           drawingStartPoint.current = pointer;
           handleToolAction(canvas, pointer, 'down');
@@ -616,7 +617,8 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
       const currentTool = selectedToolRef.current;
       
       if (currentTool !== 'pen' && currentTool !== 'select' && isDrawingRef.current && drawingStartPoint.current) {
-        const pointer = canvas.getPointer(opt.e);
+        // Fabric v6 compatibility
+        const pointer = opt.scenePoint || canvas.getPointer(opt.e);
         if (pointer) {
           handleToolAction(canvas, pointer, 'move');
         }
@@ -627,7 +629,7 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
       }
       cursorThrottleRef.current = setTimeout(() => {
         try {
-          const pointer = canvas.getPointer(opt.e);
+          const pointer = opt.scenePoint || canvas.getPointer(opt.e);
           if (pointer && wsClient.isConnected()) {
             wsClient.sendCursorMove(boardId, pointer.x, pointer.y);
           }
@@ -827,9 +829,9 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
     const canvas = fabricCanvasRef.current;
     
     // Calculate center of viewport to place template
-    const vpt = (canvas as any).getViewportTransform();
-    const centerX = (canvas.width! / 2 - (vpt ? vpt[4] : 0)) / (vpt ? vpt[0] : 1);
-    const centerY = (canvas.height! / 2 - (vpt ? vpt[5] : 0)) / (vpt ? vpt[3] : 1);
+    const vpt = (canvas as any).getViewportTransform() || [1, 0, 0, 1, 0, 0];
+    const centerX = (canvas.width! / 2 - vpt[4]) / vpt[0];
+    const centerY = (canvas.height! / 2 - vpt[5]) / vpt[3];
 
     const startX = centerX - 400;
     const startY = centerY - 300;
