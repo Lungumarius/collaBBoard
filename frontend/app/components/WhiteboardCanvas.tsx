@@ -604,6 +604,17 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
   const setupCanvasEvents = useCallback((canvas: fabric.Canvas, boardId: string) => {
     canvas.on('mouse:down', (opt) => {
       try {
+        const evt = opt.e as MouseEvent;
+        // Panning mode: Alt key pressed
+        if (evt.altKey) {
+            const c = canvas as any;
+            c.isDragging = true;
+            canvas.selection = false;
+            c.lastPosX = evt.clientX;
+            c.lastPosY = evt.clientY;
+            return;
+        }
+
         const currentTool = selectedToolRef.current;
         if (currentTool === 'pen') return;
         
@@ -619,6 +630,25 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
     });
 
     canvas.on('mouse:move', (opt) => {
+      const evt = opt.e as MouseEvent;
+      const c = canvas as any;
+      if (c.isDragging) {
+        const vpt = canvas.viewportTransform;
+        if (vpt) {
+            vpt[4] += evt.clientX - (c.lastPosX || 0);
+            vpt[5] += evt.clientY - (c.lastPosY || 0);
+            canvas.requestRenderAll();
+            
+            // Sync background grid
+            if (canvasContainerRef.current) {
+                canvasContainerRef.current.style.backgroundPosition = `${vpt[4]}px ${vpt[5]}px`;
+            }
+        }
+        c.lastPosX = evt.clientX;
+        c.lastPosY = evt.clientY;
+        return;
+      }
+
       const currentTool = selectedToolRef.current;
       
       if (currentTool !== 'pen' && currentTool !== 'select' && isDrawingRef.current && drawingStartPoint.current) {
@@ -644,6 +674,14 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
     });
 
     canvas.on('mouse:up', (e) => {
+        const c = canvas as any;
+        // Reset panning
+        if (c.isDragging) {
+            c.isDragging = false;
+            canvas.selection = true;
+            return;
+        }
+
         if (trashRef.current && e.target) {
             const trashRect = trashRef.current.getBoundingClientRect();
             const { clientX, clientY } = e.e as MouseEvent;
@@ -703,7 +741,42 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
       drawingStartPoint.current = null;
     });
 
+    canvas.on('mouse:wheel', (opt) => {
+        const evt = opt.e as WheelEvent;
+        // Allow zooming only when Ctrl or Cmd is pressed to prevent accidental zooming during normal trackpad scrolls, or always zoom if desired (Miro style)
+        // Let's implement standard scroll-to-zoom (Miro style)
+        let zoom = canvas.getZoom();
+        zoom *= 0.999 ** evt.deltaY;
+        if (zoom > 20) zoom = 20;
+        if (zoom < 0.05) zoom = 0.05;
+        
+        const pointer = canvas.getPointer(evt);
+        canvas.zoomToPoint(new fabric.Point(pointer.x, pointer.y), zoom);
+        
+        // Sync background grid scale and position
+        if (canvasContainerRef.current) {
+            const vpt = canvas.viewportTransform;
+            if (vpt) {
+                canvasContainerRef.current.style.backgroundSize = `${20 * zoom}px ${20 * zoom}px`;
+                canvasContainerRef.current.style.backgroundPosition = `${vpt[4]}px ${vpt[5]}px`;
+            }
+        }
+        
+        opt.e.preventDefault();
+        opt.e.stopPropagation();
+    });
+
     canvas.on('object:moving', (e) => {
+        if (e.target && !e.target.shadow) {
+            e.target.set('shadow', new fabric.Shadow({
+                color: 'rgba(0,0,0,0.3)',
+                blur: 15,
+                offsetX: 5,
+                offsetY: 5
+            }));
+            canvas.requestRenderAll();
+        }
+
         if (trashRef.current && e.target) {
             const trashRect = trashRef.current.getBoundingClientRect();
             const { clientX, clientY } = e.e as MouseEvent;
@@ -741,6 +814,11 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
     });
 
     canvas.on('object:modified', (e) => {
+        if (e.target && e.target.shadow) {
+            e.target.set('shadow', null);
+            canvas.requestRenderAll();
+        }
+
         if (e.action === 'drag') return; 
 
         if (isApplyingServerUpdateRef.current) return;
@@ -1217,8 +1295,16 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
       )}
 
       {/* Canvas Container */}
-      <div className="flex-1 overflow-hidden relative" ref={canvasContainerRef}>
-        <canvas ref={canvasRef} className="border border-gray-300" />
+      <div 
+        className="flex-1 overflow-hidden relative" 
+        ref={canvasContainerRef}
+        style={{
+          backgroundImage: 'radial-gradient(#CBD5E1 1px, transparent 1px)',
+          backgroundSize: '20px 20px',
+          backgroundColor: '#f8fafc' // subtle slate-50
+        }}
+      >
+        <canvas ref={canvasRef} className="absolute inset-0" />
 
         {/* Trash Bin */}
         <div 

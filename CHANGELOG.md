@@ -6,6 +6,11 @@ All notable changes to this project during our sessions will be documented in th
 ### Added
 - Created `GEMINI.md` with project architecture and coding guidelines based on project codebase analysis.
 - Established this `CHANGELOG.md` file to keep track of development progress across sessions.
+- **Premium Canvas Features:** Upgraded the whiteboard to an Infinite Canvas model:
+  - **Zooming:** Added mouse wheel support to zoom in and out smoothly around the cursor's location.
+  - **Panning:** Added support for panning the infinite canvas by holding the `Alt` key and dragging.
+  - **Dot Grid Background:** Implemented a subtle CSS radial-gradient dot grid that dynamically syncs its scale and position with the canvas viewport for a professional architectural feel.
+  - **Dynamic Shadows:** Elements now receive a subtle drop-shadow effect while being dragged, creating a tactile "lifted" appearance.
 
 ### Fixed
 - Re-injected the accidentally removed primary `useEffect` in `WhiteboardCanvas.tsx` which initializes `fabric.Canvas` and connects the application to WebSocket events, thus restoring core drawing and template functionalities.
