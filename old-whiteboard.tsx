@@ -389,11 +389,10 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
         canvas.selection = false;
         canvas.defaultCursor = 'crosshair';
         canvas.isDrawingMode = true;
-        if (!canvas.freeDrawingBrush) {
-          canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+        if (canvas.freeDrawingBrush) {
+          canvas.freeDrawingBrush.color = currentColor || '#000000';
+          canvas.freeDrawingBrush.width = 2;
         }
-        canvas.freeDrawingBrush.color = currentColor || '#000000';
-        canvas.freeDrawingBrush.width = 2;
         canvas.renderAll();
         break;
       default:
@@ -603,8 +602,7 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
         const currentTool = selectedToolRef.current;
         if (currentTool === 'pen') return;
         
-        // Fabric v6 uses scenePoint directly on the event object
-        const pointer = opt.scenePoint;
+        const pointer = canvas.getPointer(opt.e);
         if (pointer) {
           drawingStartPoint.current = pointer;
           handleToolAction(canvas, pointer, 'down');
@@ -618,7 +616,7 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
       const currentTool = selectedToolRef.current;
       
       if (currentTool !== 'pen' && currentTool !== 'select' && isDrawingRef.current && drawingStartPoint.current) {
-        const pointer = opt.scenePoint;
+        const pointer = canvas.getPointer(opt.e);
         if (pointer) {
           handleToolAction(canvas, pointer, 'move');
         }
@@ -629,7 +627,7 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
       }
       cursorThrottleRef.current = setTimeout(() => {
         try {
-          const pointer = opt.scenePoint;
+          const pointer = canvas.getPointer(opt.e);
           if (pointer && wsClient.isConnected()) {
             wsClient.sendCursorMove(boardId, pointer.x, pointer.y);
           }
@@ -829,9 +827,9 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
     const canvas = fabricCanvasRef.current;
     
     // Calculate center of viewport to place template
-    const vpt = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
-    const centerX = (canvas.width! / 2 - vpt[4]) / vpt[0];
-    const centerY = (canvas.height! / 2 - vpt[5]) / vpt[3];
+    const vpt = (canvas as any).getViewportTransform();
+    const centerX = (canvas.width! / 2 - (vpt ? vpt[4] : 0)) / (vpt ? vpt[0] : 1);
+    const centerY = (canvas.height! / 2 - (vpt ? vpt[5] : 0)) / (vpt ? vpt[3] : 1);
 
     const startX = centerX - 400;
     const startY = centerY - 300;
@@ -1083,73 +1081,7 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
     }
   }, [boardId]);
 
-  // 1. Primary Initialization
-  useEffect(() => {
-    if (!canvasRef.current || !canvasContainerRef.current || isInitializedRef.current) return;
-    
-    const container = canvasContainerRef.current;
-    
-    // Fallback dimensions in case flexbox hasn't fully expanded
-    const initialWidth = container.clientWidth || window.innerWidth || 800;
-    const initialHeight = container.clientHeight || window.innerHeight || 600;
-
-    // Initialize Fabric.js Canvas synchronously so subsequent setups work
-    const canvas = new fabric.Canvas(canvasRef.current, {
-      width: initialWidth,
-      height: initialHeight,
-      backgroundColor: '#ffffff',
-      selection: true,
-      preserveObjectStacking: true,
-    });
-    
-    fabricCanvasRef.current = canvas;
-    isInitializedRef.current = true;
-
-    // Setup Canvas Events immediately on the active instance
-    const cleanupEvents = setupCanvasEvents(canvas, boardId);
-    
-    // Connect to WebSocket
-    if (token) {
-      wsClient.connect(boardId, token, {
-        onShapeEvent: (msg) => handleShapeEvent(msg, canvas),
-        onCursorEvent: handleCursorEvent,
-        onPresenceEvent: handlePresenceEvent,
-        onConnect: () => {
-          console.log('Connected to whiteboard session:', boardId);
-        },
-        onError: (err) => {
-          console.error('WebSocket connection error:', err);
-        }
-      });
-    }
-
-    // Handle robust container resizing
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        if (fabricCanvasRef.current) {
-          const { width, height } = entry.contentRect;
-          if (width > 0 && height > 0) {
-            fabricCanvasRef.current.setDimensions({ width, height });
-            fabricCanvasRef.current.renderAll();
-          }
-        }
-      }
-    });
-    resizeObserver.observe(container);
-
-    handleToolSelect(selectedToolRef.current);
-
-    return () => {
-      resizeObserver.disconnect();
-      cleanupEvents();
-      wsClient.disconnect();
-      canvas.dispose().catch(console.error);
-      fabricCanvasRef.current = null;
-      isInitializedRef.current = false;
-    };
-  }, [boardId, token, handleShapeEvent, handleCursorEvent, handlePresenceEvent, setupCanvasEvents, handleToolSelect]);
-
-  // Secondary effect for shapes loading - Ensures rendering after fetch
+  // Secondary effect for shapes loading
   useEffect(() => {
     if (!fabricCanvasRef.current || !shapes || shapes.length === 0) return;
     
@@ -1173,10 +1105,7 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
         onColorChange={(color) => {
           setSelectedColor(color);
           selectedColorRef.current = color; 
-          if (fabricCanvasRef.current && selectedToolRef.current === 'pen') {
-            if (!fabricCanvasRef.current.freeDrawingBrush) {
-              fabricCanvasRef.current.freeDrawingBrush = new fabric.PencilBrush(fabricCanvasRef.current);
-            }
+          if (fabricCanvasRef.current && selectedToolRef.current === 'pen' && fabricCanvasRef.current.freeDrawingBrush) {
             fabricCanvasRef.current.freeDrawingBrush.color = color;
           }
         }}
@@ -1200,7 +1129,11 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
       )}
 
       {/* Canvas Container */}
-      <div className="flex-1 overflow-hidden relative" ref={canvasContainerRef}>
+      <div className="flex-1 overflow-hidden relative" ref={(el) => {
+        if (el && !canvasContainerRef.current) {
+          canvasContainerRef.current = el;
+        }
+      }}>
         <canvas ref={canvasRef} className="border border-gray-300" />
 
         {/* Trash Bin */}
@@ -1250,7 +1183,7 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
               placeholder={textModal.type === 'text' ? 'Enter text...' : 'Enter sticky note text...'}
               onSave={textModal.onSave}
               onCancel={() => setTextModal(null)}
-              canvasContainerRef={canvasContainerRef}
+              canvasContainer={canvasContainerRef.current}
             />
           </>
         )}
