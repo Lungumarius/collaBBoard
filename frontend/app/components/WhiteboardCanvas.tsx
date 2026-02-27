@@ -1083,9 +1083,9 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
     }
   }, [boardId]);
 
+  // 1. Initialize Canvas ONCE
   useEffect(() => {
-    if (!canvasRef.current || !canvasContainerRef.current) return;
-    if (isInitializedRef.current) return;
+    if (!canvasRef.current || !canvasContainerRef.current || isInitializedRef.current) return;
     
     // Initialize Fabric.js Canvas
     const canvas = new fabric.Canvas(canvasRef.current, {
@@ -1098,7 +1098,32 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
     
     fabricCanvasRef.current = canvas;
     isInitializedRef.current = true;
-    
+
+    // Handle Window Resize
+    const handleResize = () => {
+      if (canvasContainerRef.current && fabricCanvasRef.current) {
+        fabricCanvasRef.current.setDimensions({
+          width: canvasContainerRef.current.clientWidth,
+          height: canvasContainerRef.current.clientHeight
+        });
+        fabricCanvasRef.current.renderAll();
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      canvas.dispose().catch(console.error);
+      fabricCanvasRef.current = null;
+      isInitializedRef.current = false;
+    };
+  }, []);
+
+  // 2. Setup Events and WebSockets
+  useEffect(() => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+
     // Setup Canvas Events
     const cleanupEvents = setupCanvasEvents(canvas, boardId);
     
@@ -1117,28 +1142,12 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
       });
     }
 
-    // Handle Window Resize
-    const handleResize = () => {
-      if (canvasContainerRef.current && fabricCanvasRef.current) {
-        fabricCanvasRef.current.setDimensions({
-          width: canvasContainerRef.current.clientWidth,
-          height: canvasContainerRef.current.clientHeight
-        });
-        fabricCanvasRef.current.renderAll();
-      }
-    };
-    window.addEventListener('resize', handleResize);
-
     // Initial tool select setup
     handleToolSelect(selectedToolRef.current);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
       cleanupEvents();
       wsClient.disconnect();
-      canvas.dispose();
-      fabricCanvasRef.current = null;
-      isInitializedRef.current = false;
     };
   }, [boardId, token, handleShapeEvent, handleCursorEvent, handlePresenceEvent, setupCanvasEvents, handleToolSelect]);
 
@@ -1190,11 +1199,7 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
       )}
 
       {/* Canvas Container */}
-      <div className="flex-1 overflow-hidden relative" ref={(el) => {
-        if (el && !canvasContainerRef.current) {
-          canvasContainerRef.current = el;
-        }
-      }}>
+      <div className="flex-1 overflow-hidden relative" ref={canvasContainerRef}>
         <canvas ref={canvasRef} className="border border-gray-300" />
 
         {/* Trash Bin */}
