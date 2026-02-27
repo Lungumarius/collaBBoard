@@ -27,6 +27,8 @@ When making changes to this codebase, I must adhere to the following rules:
 - **Microservice Boundaries:** Respect the separation of concerns. Do not mix Auth domain logic into the Whiteboard service, and vice-versa.
 - **Schema Management:** Any database changes must be accompanied by a new Flyway migration script in the respective service's `src/main/resources/db/migration/` folder.
 - **WebSocket Protocol:** When modifying real-time features, ensure both the Spring Boot STOMP controllers and the Next.js WebSocket client (`app/lib/websocket.ts`) are updated in sync.
+- **UI Performance & Throttling:** Never send real-time coordinates or shape dragging updates on every single pixel/frame (e.g. `mouse:move`, `object:moving`). ALWAYS use a time-based throttle (e.g., 30-50ms) to ensure smooth ~30-60fps UI performance and prevent network lag.
+- **Fabric.js Groups:** When interacting with selections, remember that multi-selected items are wrapped in an `ActiveSelection` group which masks their individual data properties. Always unpack `target.getObjects()` when performing bulk actions (like deletion).
 - **Docker First:** Ensure that any new dependencies or configuration changes are compatible with the existing `docker-compose` setup.
 - **Testing:** Always look for existing tests in `src/test/java` for the backend or run any configured frontend tests before finalizing a change. Add new tests for bug fixes or features.
 - **Continuous Documentation:** Record every resolved issue, implemented feature, or structural change step-by-step in `CHANGELOG.md` at the root directory. This ensures clear context for future sessions.

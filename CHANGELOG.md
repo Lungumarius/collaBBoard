@@ -17,3 +17,6 @@ All notable changes to this project during our sessions will be documented in th
 - **Deep Compatibility Fix:** Fixed a silent crash when selecting the Pen tool by explicitly instantiating `fabric.PencilBrush`, which is no longer attached by default in Fabric v6.
 - Fixed Next.js build compilation failure by correcting a stale dependency (`canvasContainerRef`) inside the `TextInputModal`'s `useEffect`.
 - Wrapped canvas dimensions calculation in a slight delay (setTimeout) at boot-time to guarantee that Flexbox layout has fully painted the DOM sizes before assigning them to Fabric.
+- **Performance & Smoothness:** Replaced the debounce logic in `mouse:move` with a real-time ~30fps throttle, fixing the severe lag associated with other users' cursors moving across the board.
+- **Performance:** Throttled the WebSocket broadcasts within `object:moving` to a stable ~20fps. This stops the canvas from choking on hundreds of redundant coordinate updates, eliminating the "slow-motion" dragging effect.
+- Fixed the trash bin feature not recognizing multiple selected shapes (ActiveSelection) by iterating through the grouped objects and deleting them individually.

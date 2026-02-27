@@ -31,7 +31,11 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
   const currentShapeRef = useRef<fabric.Object | null>(null);
   const [activeUsers, setActiveUsers] = useState<Map<string, { userId: string; email: string; cursor?: { x: number; y: number } }>>(new Map());
   const cursorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const cursorThrottleRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Throttle references for performance
+  const lastCursorSendRef = useRef<number>(0);
+  const lastShapeUpdateRef = useRef<number>(0);
+
   const selectedToolRef = useRef<string>('select');
   const selectedColorRef = useRef<string>('#000000');
   const isApplyingServerUpdateRef = useRef<boolean>(false);
@@ -624,19 +628,19 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
         }
       }
 
-      if (cursorThrottleRef.current) {
-        clearTimeout(cursorThrottleRef.current);
-      }
-      cursorThrottleRef.current = setTimeout(() => {
+      // Smooth time-based throttle for cursor (approx ~30fps sync)
+      const now = Date.now();
+      if (now - lastCursorSendRef.current > 30) {
         try {
           const pointer = opt.scenePoint;
           if (pointer && wsClient.isConnected()) {
             wsClient.sendCursorMove(boardId, pointer.x, pointer.y);
+            lastCursorSendRef.current = now;
           }
         } catch (error) {
           console.error('Error sending cursor move:', error);
         }
-      }, 50);
+      }
     });
 
     canvas.on('mouse:up', (e) => {
@@ -650,14 +654,25 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
                 clientY >= trashRect.top &&
                 clientY <= trashRect.bottom
             ) {
-                const obj = e.target as any;
-                if (obj.data?.shapeId && wsClient.isConnected()) {
-                    wsClient.sendShapeDelete({
-                        boardId,
-                        shapeId: obj.data.shapeId,
+                const target = e.target as any;
+                // Handle multiple selection deletion
+                if (target.type === 'activeSelection') {
+                    const objects = target.getObjects();
+                    objects.forEach((obj: any) => {
+                        if (obj.data?.shapeId && wsClient.isConnected()) {
+                            wsClient.sendShapeDelete({ boardId, shapeId: obj.data.shapeId });
+                        }
+                        canvas.remove(obj);
                     });
+                    canvas.discardActiveObject();
+                } else if (target.data?.shapeId && wsClient.isConnected()) {
+                    // Handle single object deletion
+                    wsClient.sendShapeDelete({ boardId, shapeId: target.data.shapeId });
+                    canvas.remove(target);
+                } else {
+                    // Cleanup local/unsaved objects
+                    canvas.remove(target);
                 }
-                canvas.remove(obj);
                 setIsOverTrash(false);
                 canvas.requestRenderAll();
                 return;
@@ -693,32 +708,34 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
             const trashRect = trashRef.current.getBoundingClientRect();
             const { clientX, clientY } = e.e as MouseEvent;
             
-            if (
-                clientX >= trashRect.left &&
-                clientX <= trashRect.right &&
-                clientY >= trashRect.top &&
-                clientY <= trashRect.bottom
-            ) {
-                setIsOverTrash(true);
-                e.target.set('opacity', 0.5);
-            } else {
-                setIsOverTrash(false);
-                e.target.set('opacity', 1);
+            const isOver = clientX >= trashRect.left &&
+                           clientX <= trashRect.right &&
+                           clientY >= trashRect.top &&
+                           clientY <= trashRect.bottom;
+
+            if (isOver !== isOverTrash) {
+                setIsOverTrash(isOver);
+                e.target.set('opacity', isOver ? 0.5 : 1);
+                canvas.requestRenderAll();
             }
-            canvas.requestRenderAll();
         }
 
         if (isApplyingServerUpdateRef.current) return;
         
-        const obj = e.target as any;
-        if (obj?.data?.shapeId && !obj.data?.isLocal) {
-            const shapeData = extractShapeData(obj);
-            if (shapeData && wsClient.isConnected()) {
-            wsClient.sendShapeUpdate({
-                boardId,
-                shapeId: obj.data.shapeId,
-                shapeData: shapeData.data,
-            });
+        // Throttle updates during drag to prevent network/render lag (~20fps sync)
+        const now = Date.now();
+        if (now - lastShapeUpdateRef.current > 50) {
+            const obj = e.target as any;
+            if (obj?.data?.shapeId && !obj.data?.isLocal) {
+                const shapeData = extractShapeData(obj);
+                if (shapeData && wsClient.isConnected()) {
+                    wsClient.sendShapeUpdate({
+                        boardId,
+                        shapeId: obj.data.shapeId,
+                        shapeData: shapeData.data,
+                    });
+                    lastShapeUpdateRef.current = now;
+                }
             }
         }
     });
