@@ -389,10 +389,11 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
         canvas.selection = false;
         canvas.defaultCursor = 'crosshair';
         canvas.isDrawingMode = true;
-        if (canvas.freeDrawingBrush) {
-          canvas.freeDrawingBrush.color = currentColor || '#000000';
-          canvas.freeDrawingBrush.width = 2;
+        if (!canvas.freeDrawingBrush) {
+          canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
         }
+        canvas.freeDrawingBrush.color = currentColor || '#000000';
+        canvas.freeDrawingBrush.width = 2;
         canvas.renderAll();
         break;
       default:
@@ -1088,39 +1089,48 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
     
     const container = canvasContainerRef.current;
 
-    // Initialize Fabric.js Canvas
-    const canvas = new fabric.Canvas(canvasRef.current, {
-      width: container.clientWidth || 800,
-      height: container.clientHeight || 600,
-      backgroundColor: '#ffffff',
-      selection: true,
-      preserveObjectStacking: true,
-    });
-    
-    fabricCanvasRef.current = canvas;
-    isInitializedRef.current = true;
+    // Use setTimeout to ensure DOM layout is complete before reading dimensions
+    setTimeout(() => {
+      if (!canvasRef.current) return;
+      
+      const initialWidth = container.clientWidth || window.innerWidth || 800;
+      const initialHeight = container.clientHeight || window.innerHeight || 600;
 
-    // Handle robust container resizing
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        if (fabricCanvasRef.current) {
-          fabricCanvasRef.current.setDimensions({
-            width: entry.contentRect.width,
-            height: entry.contentRect.height
-          });
-          fabricCanvasRef.current.renderAll();
+      // Initialize Fabric.js Canvas
+      const canvas = new fabric.Canvas(canvasRef.current, {
+        width: initialWidth,
+        height: initialHeight,
+        backgroundColor: '#ffffff',
+        selection: true,
+        preserveObjectStacking: true,
+      });
+      
+      fabricCanvasRef.current = canvas;
+      isInitializedRef.current = true;
+
+      // Handle robust container resizing
+      const resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          if (fabricCanvasRef.current) {
+            const { width, height } = entry.contentRect;
+            if (width > 0 && height > 0) {
+              fabricCanvasRef.current.setDimensions({ width, height });
+              fabricCanvasRef.current.renderAll();
+            }
+          }
         }
-      }
-    });
+      });
 
-    resizeObserver.observe(container);
+      resizeObserver.observe(container);
 
-    return () => {
-      resizeObserver.disconnect();
-      canvas.dispose().catch(console.error);
-      fabricCanvasRef.current = null;
-      isInitializedRef.current = false;
-    };
+      // Clean up function inside the setTimeout to close over the right variables
+      return () => {
+        resizeObserver.disconnect();
+        canvas.dispose().catch(console.error);
+        fabricCanvasRef.current = null;
+        isInitializedRef.current = false;
+      };
+    }, 50);
   }, []);
 
   // 2. Setup Events and WebSockets
@@ -1146,8 +1156,10 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
       });
     }
 
-    // Initial tool select setup
-    handleToolSelect(selectedToolRef.current);
+    // Wrap initial tool setup to ensure it runs only when canvas is definitely ready
+    setTimeout(() => {
+      handleToolSelect(selectedToolRef.current);
+    }, 100);
 
     return () => {
       cleanupEvents();
@@ -1179,7 +1191,10 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
         onColorChange={(color) => {
           setSelectedColor(color);
           selectedColorRef.current = color; 
-          if (fabricCanvasRef.current && selectedToolRef.current === 'pen' && fabricCanvasRef.current.freeDrawingBrush) {
+          if (fabricCanvasRef.current && selectedToolRef.current === 'pen') {
+            if (!fabricCanvasRef.current.freeDrawingBrush) {
+              fabricCanvasRef.current.freeDrawingBrush = new fabric.PencilBrush(fabricCanvasRef.current);
+            }
             fabricCanvasRef.current.freeDrawingBrush.color = color;
           }
         }}

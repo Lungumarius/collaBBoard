@@ -45,7 +45,7 @@ export default function TextInputModal({
         inputRef.current?.select();
       }, 10);
     }
-  }, [isOpen, x, y, initialText, canvasContainer]);
+  }, [isOpen, x, y, initialText, canvasContainerRef]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {

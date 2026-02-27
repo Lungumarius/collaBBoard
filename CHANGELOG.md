@@ -14,3 +14,6 @@ All notable changes to this project during our sessions will be documented in th
 - Fixed a silent failure on all mouse interactions (drawing/clicking) caused by the usage of the deprecated `canvas.getPointer` method which was removed in Fabric v6; replaced it entirely with `opt.scenePoint`.
 - Solved an issue where the board would render with an invisible 0x0 dimension due to React's first-render cycle mismatch with CSS Flexbox loading by implementing a standard `ResizeObserver`.
 - Updated template placement logic to use the modern `viewportTransform` property instead of the deprecated method.
+- **Deep Compatibility Fix:** Fixed a silent crash when selecting the Pen tool by explicitly instantiating `fabric.PencilBrush`, which is no longer attached by default in Fabric v6.
+- Fixed Next.js build compilation failure by correcting a stale dependency (`canvasContainerRef`) inside the `TextInputModal`'s `useEffect`.
+- Wrapped canvas dimensions calculation in a slight delay (setTimeout) at boot-time to guarantee that Flexbox layout has fully painted the DOM sizes before assigning them to Fabric.
