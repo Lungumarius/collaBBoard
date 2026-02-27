@@ -602,8 +602,8 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
         const currentTool = selectedToolRef.current;
         if (currentTool === 'pen') return;
         
-        // Fabric v6: Use scenePoint directly if available, otherwise fallback
-        const pointer = opt.scenePoint || canvas.getPointer(opt.e);
+        // Fabric v6 uses scenePoint directly on the event object
+        const pointer = opt.scenePoint;
         if (pointer) {
           drawingStartPoint.current = pointer;
           handleToolAction(canvas, pointer, 'down');
@@ -617,8 +617,7 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
       const currentTool = selectedToolRef.current;
       
       if (currentTool !== 'pen' && currentTool !== 'select' && isDrawingRef.current && drawingStartPoint.current) {
-        // Fabric v6 compatibility
-        const pointer = opt.scenePoint || canvas.getPointer(opt.e);
+        const pointer = opt.scenePoint;
         if (pointer) {
           handleToolAction(canvas, pointer, 'move');
         }
@@ -629,7 +628,7 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
       }
       cursorThrottleRef.current = setTimeout(() => {
         try {
-          const pointer = opt.scenePoint || canvas.getPointer(opt.e);
+          const pointer = opt.scenePoint;
           if (pointer && wsClient.isConnected()) {
             wsClient.sendCursorMove(boardId, pointer.x, pointer.y);
           }
@@ -829,7 +828,7 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
     const canvas = fabricCanvasRef.current;
     
     // Calculate center of viewport to place template
-    const vpt = (canvas as any).getViewportTransform() || [1, 0, 0, 1, 0, 0];
+    const vpt = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
     const centerX = (canvas.width! / 2 - vpt[4]) / vpt[0];
     const centerY = (canvas.height! / 2 - vpt[5]) / vpt[3];
 
@@ -1087,10 +1086,12 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
   useEffect(() => {
     if (!canvasRef.current || !canvasContainerRef.current || isInitializedRef.current) return;
     
+    const container = canvasContainerRef.current;
+
     // Initialize Fabric.js Canvas
     const canvas = new fabric.Canvas(canvasRef.current, {
-      width: canvasContainerRef.current.clientWidth,
-      height: canvasContainerRef.current.clientHeight,
+      width: container.clientWidth || 800,
+      height: container.clientHeight || 600,
       backgroundColor: '#ffffff',
       selection: true,
       preserveObjectStacking: true,
@@ -1099,20 +1100,23 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
     fabricCanvasRef.current = canvas;
     isInitializedRef.current = true;
 
-    // Handle Window Resize
-    const handleResize = () => {
-      if (canvasContainerRef.current && fabricCanvasRef.current) {
-        fabricCanvasRef.current.setDimensions({
-          width: canvasContainerRef.current.clientWidth,
-          height: canvasContainerRef.current.clientHeight
-        });
-        fabricCanvasRef.current.renderAll();
+    // Handle robust container resizing
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (fabricCanvasRef.current) {
+          fabricCanvasRef.current.setDimensions({
+            width: entry.contentRect.width,
+            height: entry.contentRect.height
+          });
+          fabricCanvasRef.current.renderAll();
+        }
       }
-    };
-    window.addEventListener('resize', handleResize);
+    });
+
+    resizeObserver.observe(container);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
       canvas.dispose().catch(console.error);
       fabricCanvasRef.current = null;
       isInitializedRef.current = false;
