@@ -10,7 +10,7 @@ interface TextInputModalProps {
   placeholder?: string;
   onSave: (text: string) => void;
   onCancel: () => void;
-  canvasContainer?: HTMLElement | null;
+  canvasContainerRef?: React.RefObject<HTMLElement | null>;
 }
 
 export default function TextInputModal({
@@ -21,7 +21,7 @@ export default function TextInputModal({
   placeholder = 'Enter text...',
   onSave,
   onCancel,
-  canvasContainer,
+  canvasContainerRef,
 }: TextInputModalProps) {
   const [text, setText] = useState(initialText);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -29,10 +29,9 @@ export default function TextInputModal({
 
   useEffect(() => {
     if (isOpen) {
-      setText(initialText);
       // Adjust position relative to canvas container if provided
-      if (canvasContainer) {
-        const rect = canvasContainer.getBoundingClientRect();
+      if (canvasContainerRef?.current) {
+        const rect = canvasContainerRef.current.getBoundingClientRect();
         setPosition({
           x: x + rect.left,
           y: y + rect.top,

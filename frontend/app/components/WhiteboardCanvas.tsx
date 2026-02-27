@@ -1083,6 +1083,65 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
     }
   }, [boardId]);
 
+  useEffect(() => {
+    if (!canvasRef.current || !canvasContainerRef.current) return;
+    if (isInitializedRef.current) return;
+    
+    // Initialize Fabric.js Canvas
+    const canvas = new fabric.Canvas(canvasRef.current, {
+      width: canvasContainerRef.current.clientWidth,
+      height: canvasContainerRef.current.clientHeight,
+      backgroundColor: '#ffffff',
+      selection: true,
+      preserveObjectStacking: true,
+    });
+    
+    fabricCanvasRef.current = canvas;
+    isInitializedRef.current = true;
+    
+    // Setup Canvas Events
+    const cleanupEvents = setupCanvasEvents(canvas, boardId);
+    
+    // Connect to WebSocket
+    if (token) {
+      wsClient.connect(boardId, token, {
+        onShapeEvent: (msg) => handleShapeEvent(msg, canvas),
+        onCursorEvent: handleCursorEvent,
+        onPresenceEvent: handlePresenceEvent,
+        onConnect: () => {
+          console.log('Connected to whiteboard session:', boardId);
+        },
+        onError: (err) => {
+          console.error('WebSocket connection error:', err);
+        }
+      });
+    }
+
+    // Handle Window Resize
+    const handleResize = () => {
+      if (canvasContainerRef.current && fabricCanvasRef.current) {
+        fabricCanvasRef.current.setDimensions({
+          width: canvasContainerRef.current.clientWidth,
+          height: canvasContainerRef.current.clientHeight
+        });
+        fabricCanvasRef.current.renderAll();
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
+    // Initial tool select setup
+    handleToolSelect(selectedToolRef.current);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cleanupEvents();
+      wsClient.disconnect();
+      canvas.dispose();
+      fabricCanvasRef.current = null;
+      isInitializedRef.current = false;
+    };
+  }, [boardId, token, handleShapeEvent, handleCursorEvent, handlePresenceEvent, setupCanvasEvents, handleToolSelect]);
+
   // Secondary effect for shapes loading - Ensures rendering after fetch
   useEffect(() => {
     if (!fabricCanvasRef.current || !shapes || shapes.length === 0) return;
@@ -1185,7 +1244,7 @@ export default function WhiteboardCanvas({ boardId, token, shapes, onShapeChange
               placeholder={textModal.type === 'text' ? 'Enter text...' : 'Enter sticky note text...'}
               onSave={textModal.onSave}
               onCancel={() => setTextModal(null)}
-              canvasContainer={canvasContainerRef.current}
+              canvasContainerRef={canvasContainerRef}
             />
           </>
         )}
