@@ -25,6 +25,8 @@ export default function BoardsPage() {
   // Delete Modal State
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [boardToDelete, setBoardToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated || !accessToken) {
@@ -63,12 +65,22 @@ export default function BoardsPage() {
 
   const confirmDeleteBoard = async () => {
     if (!accessToken || !boardToDelete) return;
+    
+    setIsDeleting(true);
 
     try {
       await deleteBoard(boardToDelete);
-      setShowDeleteModal(false);
-      setBoardToDelete(null);
+      setDeleteSuccess(true);
+      
+      setTimeout(() => {
+        setShowDeleteModal(false);
+        setBoardToDelete(null);
+        setDeleteSuccess(false);
+        setIsDeleting(false);
+      }, 1500);
+      
     } catch (err: any) {
+      setIsDeleting(false);
       console.error('Failed to delete board:', err);
       alert('Failed to delete board: ' + (err.message || 'Unknown error'));
     }
@@ -307,31 +319,54 @@ export default function BoardsPage() {
 
         {/* Delete Confirmation Modal */}
         {showDeleteModal && (
-          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 transition-all duration-300">
-            <div className="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full mx-4 transform transition-all scale-100">
-              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
-                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-center text-gray-900 mb-2">Delete Board?</h3>
-              <p className="text-gray-500 text-center mb-6">
-                Are you sure you want to delete this board? This action cannot be undone.
-              </p>
-              <div className="flex gap-3 justify-center">
-                <button
-                  onClick={() => setShowDeleteModal(false)}
-                  className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmDeleteBoard}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium shadow-sm transition-colors"
-                >
-                  Yes, Delete It
-                </button>
-              </div>
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-300">
+            <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm mx-4 transform animate-in zoom-in-95 duration-300 overflow-hidden relative min-h-[220px] flex flex-col justify-center">
+              
+              {deleteSuccess ? (
+                <div className="flex flex-col items-center justify-center space-y-4 animate-in fade-in zoom-in duration-500">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">Deleted Successfully!</h3>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center animate-in fade-in duration-300">
+                  <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mb-4">
+                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-center text-gray-900 mb-2">Delete Board?</h3>
+                  <p className="text-gray-500 text-center mb-6 text-sm">
+                    Are you sure you want to delete this board? This action cannot be undone.
+                  </p>
+                  <div className="flex gap-3 justify-center w-full">
+                    <button
+                      onClick={() => setShowDeleteModal(false)}
+                      disabled={isDeleting}
+                      className="flex-1 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-100 font-semibold transition-colors disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={confirmDeleteBoard}
+                      disabled={isDeleting}
+                      className="flex-1 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 font-semibold shadow-sm transition-colors flex items-center justify-center disabled:opacity-80"
+                    >
+                      {isDeleting ? (
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      ) : (
+                        'Yes, Delete It'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

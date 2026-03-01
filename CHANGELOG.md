@@ -13,6 +13,8 @@ All notable changes to this project during our sessions will be documented in th
   - **Dynamic Shadows:** Elements now receive a subtle drop-shadow effect while being dragged, creating a tactile "lifted" appearance.
 
 ### Fixed
+- Resolved a backend internal server error (foreign key constraint violation) when deleting a board by explicitly clearing its associated shapes and collaborators via repositories before the board itself is deleted.
+- Completely redesigned the Frontend Board Deletion Modal to feature smooth, fluid loading states (a spinner followed by a success checkmark), preventing the modal from jumping awkwardly upon confirmation and ensuring a polished, modern user experience.
 - Re-injected the accidentally removed primary `useEffect` in `WhiteboardCanvas.tsx` which initializes `fabric.Canvas` and connects the application to WebSocket events, thus restoring core drawing and template functionalities.
 - Resolved a React 19 linter warning in `WhiteboardCanvas.tsx` and an unnecessary state-sync within the `TextInputModal` component.
 - Separated the `fabric.Canvas` initialization from the WebSocket connection logic into distinct `useEffect` hooks in `WhiteboardCanvas.tsx`. This prevents the canvas instance from being silently detached and destroyed by React's re-renders when local component states (like the user token) change.

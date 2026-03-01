@@ -9,6 +9,7 @@ import com.smartexpenses.whiteboard.model.Board;
 import com.smartexpenses.whiteboard.model.enums.CollaboratorRole;
 import com.smartexpenses.whiteboard.repository.BoardCollaboratorRepository;
 import com.smartexpenses.whiteboard.repository.BoardRepository;
+import com.smartexpenses.whiteboard.repository.ShapeRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ public class BoardService {
 
     private final BoardRepository boardRepository;
     private final BoardCollaboratorRepository collaboratorRepository;
+    private final ShapeRepository shapeRepository;
 
     @Transactional
     public BoardResponse createBoard(CreateBoardRequest request, UUID userId) {
@@ -116,6 +118,8 @@ public class BoardService {
             throw new UnauthorizedException("Only the board owner can delete the board");
         }
 
+        shapeRepository.deleteAllByBoardId(boardId);
+        collaboratorRepository.deleteAllByBoardId(boardId);
         boardRepository.delete(board);
         log.info("Board deleted successfully: {}", boardId);
     }
